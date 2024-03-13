@@ -1,0 +1,31 @@
+# Ignore Python bytecode files
+__pycache__/
+
+# Ignore environment folder (if using virtual environments)
+.venv/
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore system and IDE specific files
+.DS_Store
+.vscode/
+.idea/
+
+# Ignore data files that are generated or downloaded
+# data/
+# *.csv
+# *.xlsx
+# *.xls
+# *.db
+# *.sqlite
+
+# Ignore large files or directories (modify based on your project's needs)
+/big_data_folder/
+
+# Ignore configuration files with sensitive information (modify based on your project's needs)
+config/*.ini
+config/secrets.py
+
+# Ignore any other project-specific files or directories
