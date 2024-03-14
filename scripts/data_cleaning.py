@@ -3,7 +3,8 @@ import numpy as np
 def drop_duplicates(data):
     return data.drop_duplicates(inplace=True)
 
-def drop_columns(data, columns_to_drop):
+def drop_columns(data):
+    columns_to_drop = ['facenumber_in_poster']
     return data.drop(columns=columns_to_drop, inplace=True)
 
 def remove_null_terminating_char(data):
