@@ -8,7 +8,7 @@ def drop_columns(data):
     return data.drop(columns=columns_to_drop, inplace=True)
 
 def remove_null_terminating_char(data):
-    data['movie_title'] = data['movie_title'].apply(lambda x: x[:-1])
+    data['movie_title'] = data['movie_title'].apply(lambda x: x[:-1]).str.rstrip()
 
 def convert_to_int(data):
     numerical_cols = data.select_dtypes(include=np.number).columns
@@ -20,11 +20,11 @@ def fill_missing_values(data):
     # Fill missing values for specific columns
     name_cols = [col for col in data.columns if col.endswith('name')]
     for col in name_cols:
-        data[col].fillna('unknown', inplace=True)
+        data[col] = data[col].fillna('unknown')
 
     mode_cols = ['color', 'language', 'country', 'aspect_ratio']
     for col in mode_cols:
-        data[col].fillna(data[col].mode().iloc[0], inplace=True)
+        data[col] = data[col].fillna(data[col].mode().iloc[0])
 
     fill_values = {
         'plot_keywords': 'none',
@@ -35,7 +35,7 @@ def fill_missing_values(data):
     # Fill missing numerical values with median
     num_cols = data.select_dtypes(include=np.number).columns
     for col in num_cols:
-        data[col].fillna(data[col].median(), inplace=True)
+        data[col] = data[col].fillna(data[col].median())
 
 def get_unique_values(data):
     for column in data.columns:
