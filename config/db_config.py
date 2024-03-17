@@ -8,16 +8,13 @@ def get_connection():
 
     try:
         connection = psycopg2.connect(**db_info)
-        cursor = connection.cursor()
-        connection.autocommit = True
-
-        return True, connection, cursor, None
+        
+        return True, connection, None
     
     except Exception as e:
-        return False, None, None, str(e)
+        return False, None, str(e)
 
-def end_connection(connection, cursor):
-    cursor.close()
+def end_connection(connection):
     connection.close()
 
 

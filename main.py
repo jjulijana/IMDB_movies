@@ -1,14 +1,16 @@
 import os
 import pandas as pd
+from io import StringIO
 
 from config.db_config import get_connection, end_connection
 from scripts.data_profiling import generate_profile_report, generate_report_if_not_exists
 from scripts.data_cleaning import drop_duplicates, drop_columns, fill_missing_values, remove_null_terminating_char, convert_to_int
 from scripts.data_processing import process_actor_data
+from scripts.queries import execute_template_query
 
 def main():
     # Connect to DB
-    successful, connection, cursor, error_message = get_connection()
+    successful, connection, error_message = get_connection()
     if not successful:
         print("Connection to database failed:", error_message)
         return  # terminate the script
@@ -56,13 +58,17 @@ def main():
     genres_df = genres_df.explode('genres')
     genres_df = genres_df.dropna(subset=['movie_title'])
 
-    print(director_df.head(), director_df.size, director_df.info)
-    print(actors_df.head(), actors_df.size, actors_df.info)
-    print(movie_df.head(), movie_df.size, movie_df.info)
-    print(genres_df.head(), genres_df.size, genres_df.info)
+    # print(director_df.head(), director_df.size, director_df.info)
+    # print(actors_df.head(), actors_df.size, actors_df.info)
+    # print(movie_df.head(), movie_df.size, movie_df.info)
+    # print(genres_df.head(), genres_df.size, genres_df.info)
+
+
+    # Work with DB
+    
     
     # End DB connection
-    end_connection(connection, cursor)
+    end_connection(connection)
     
 if __name__ == '__main__':
     main()
