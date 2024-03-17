@@ -1,12 +1,13 @@
 import os
 import pandas as pd
-from io import StringIO
+from jinja2 import Environment, FileSystemLoader
 
 from config.db_config import get_connection, end_connection
 from scripts.data_profiling import generate_profile_report, generate_report_if_not_exists
 from scripts.data_cleaning import drop_duplicates, drop_columns, fill_missing_values, remove_null_terminating_char, convert_to_int
 from scripts.data_processing import process_actor_data
-from scripts.queries import execute_template_query
+import scripts.queries 
+
 
 def main():
     # Connect to DB
@@ -65,7 +66,76 @@ def main():
 
 
     # Work with DB
+    template_dir = 'queries'
+    query_template_env = Environment(loader=FileSystemLoader(template_dir))
+
+    # Instantiate SQLQuery class
+    sql_query = scripts.queries.SQLQuery(connection)
+
+    drop_template = query_template_env.get_template('drop.sql')
     
+    sql_query.execute(drop_template.render(table="directors"))
+    create_directors_template = query_template_env.get_template('create/director.sql')
+    sql_query.execute(create_directors_template.render())
+
+    insert_directors_template = query_template_env.get_template('insert/director.sql')
+    sql_query.execute_values(
+        sql=insert_directors_template.render(),
+        argslist=director_df.to_dict(orient="records"),
+        template="""
+        (%(director_name)s, %(movie_count)s)
+        """
+    )
+
+    sql_query.execute(drop_template.render(table="actors"))
+    create_actors_template = query_template_env.get_template('create/actors.sql')
+    sql_query.execute(create_actors_template.render())
+
+    insert_actors_template = query_template_env.get_template('insert/actors.sql')
+    sql_query.execute_values(
+        sql=insert_actors_template.render(),
+        argslist=actors_df.to_dict(orient="records"),
+        template="""
+        (%(actor_name)s, %(actor_facebook_likes)s, %(movie_count)s)
+        """
+    )
+
+    sql_query.execute(drop_template.render(table="movies"))
+    create_movies_template = query_template_env.get_template('create/movies.sql')
+    sql_query.execute(create_movies_template.render())
+
+    insert_movies_template = query_template_env.get_template('insert/movies.sql')
+    sql_query.execute_values(
+        sql=insert_movies_template.render(),
+        argslist=movie_df.to_dict(orient="records"),
+        template="""
+        (%(movie_title)s, %(color)s, %(director_name)s, %(duration)s,
+         %(gross)s, %(movie_imdb_link)s, %(language)s, %(country)s,
+         %(content_rating)s, %(aspect_ratio)s, %(imdb_score)s,
+         %(movie_facebook_likes)s)
+        """
+    )
+    
+    sql_query.execute(drop_template.render(table="genres_tmp"))
+    create_genres_tmp_template = query_template_env.get_template('create/genres_tmp.sql')
+    sql_query.execute(create_genres_tmp_template.render())
+
+    insert_genres_tmp_template = query_template_env.get_template('insert/genres_tmp.sql')
+    sql_query.copy_expert(insert_genres_tmp_template.render(), genres_df)
+    
+    sql_query.execute(drop_template.render(table="movie_genres"))
+    create_movie_genres_template = query_template_env.get_template('create/movie_genres.sql')
+    sql_query.execute(create_movie_genres_template.render())
+    sql_query.execute(drop_template.render(table="genres_tmp"))
+
+    template = query_template_env.get_template('query.sql')
+    query = template.render(limit=10)
+
+    sql_query.execute(query)
+    result = sql_query.fetchall()
+    print(result)
+
+    sql_query.close()
     
     # End DB connection
     end_connection(connection)
