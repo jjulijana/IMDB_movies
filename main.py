@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
+import json
 
 from config.db_config import get_connection, end_connection
 from scripts.data_profiling import generate_profile_report, generate_report_if_not_exists
@@ -8,9 +9,26 @@ from scripts.data_cleaning import drop_duplicates, drop_columns, fill_missing_va
 from scripts.data_processing import process_actor_data
 import scripts.queries 
 
+def execute_insert(table_name: str, df: pd.DataFrame) -> None:
+    sql_query.execute_values(
+        sql=insert_query[table_name],
+        argslist=df.to_dict(orient="records"),
+        template= f"({', '.join([f'%({c})s' for c in schema[table_name]])})"
+    )
+
 
 def main():
     # Connect to DB
+    # Work with DB
+    template_dir = 'queries'
+    query_template_env = Environment(loader=FileSystemLoader(template_dir))
+
+    schema = json.load('schema.json')
+    insert_queries = {
+        table : query_template_env.get_template('insert/insert.sql').render(table=table, columns=columns)
+        for table, columns in schema.items()
+    }
+
     successful, connection, error_message = get_connection()
     if not successful:
         print("Connection to database failed:", error_message)
@@ -65,9 +83,7 @@ def main():
     # print(genres_df.head(), genres_df.size, genres_df.info)
 
 
-    # Work with DB
-    template_dir = 'queries'
-    query_template_env = Environment(loader=FileSystemLoader(template_dir))
+
 
     # Instantiate SQLQuery class
     sql_query = scripts.queries.SQLQuery(connection)
@@ -104,17 +120,8 @@ def main():
     create_movies_template = query_template_env.get_template('create/movies.sql')
     sql_query.execute(create_movies_template.render())
 
-    insert_movies_template = query_template_env.get_template('insert/movies.sql')
-    sql_query.execute_values(
-        sql=insert_movies_template.render(),
-        argslist=movie_df.to_dict(orient="records"),
-        template="""
-        (%(movie_title)s, %(color)s, %(director_name)s, %(duration)s,
-         %(gross)s, %(movie_imdb_link)s, %(language)s, %(country)s,
-         %(content_rating)s, %(aspect_ratio)s, %(imdb_score)s,
-         %(movie_facebook_likes)s)
-        """
-    )
+
+    execute_insert("movies", movie_df)
     
     sql_query.execute(drop_template.render(table="genres_tmp"))
     create_genres_tmp_template = query_template_env.get_template('create/genres_tmp.sql')
