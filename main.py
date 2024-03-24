@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from jinja2 import Environment, FileSystemLoader
 
 from config.db_config import get_connection, end_connection
 from scripts.data_profiling import generate_profile_report, generate_report_if_not_exists

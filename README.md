@@ -12,7 +12,10 @@ The project is structured as follows:
 - `data/`: This directory contains the input and output data files.
 - `reports/`: Contains profiling reports generated for the raw and cleaned data.
 - `scripts/`: Contains Python scripts for data cleaning and profiling.
-- `main.py`: Main script to execute the data cleaning process.
+- `queries/`: Contains SQL query templates and scripts.
+- `config/`: Contains configuration files and scripts.
+- `schema.json` : Schema with columns and insertion types for tables.
+- `main.py`: Main script to execute the data cleaning and storing process.
 
 ## Dependencies
 
@@ -20,6 +23,13 @@ The project is structured as follows:
 - pandas
 - numpy
 - ydata_profiling
+- psycopg2-binary
+- Jinja2
 
 Install dependencies using:
 `pip install -r requirements.txt`
+
+## Usage
+
+To run the data cleaning and storing process, execute the following command:
+`python3 main.py`
