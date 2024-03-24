@@ -1,23 +1,42 @@
 from jinja2 import Environment, FileSystemLoader
 import json
 
-template_dir = 'queries'
-query_template_env = Environment(loader=FileSystemLoader(template_dir))
+class QueryTemplates:
+    _instance = None
 
-schema_file_path = 'schema.json'
+    def __new__(cls, template_dir='queries', schema_file_path='schema.json'):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.template_dir = template_dir
+            cls._instance.schema_file_path = schema_file_path
+            cls._instance.env = Environment(loader=FileSystemLoader(cls._instance.template_dir))
+            cls._instance.load_templates()
+        return cls._instance
+    
+    def load_templates(self):
+        with open(self.schema_file_path, 'r') as f:
+            schema = json.load(f)
+        
+        self.rendered_insert = {}
+        self.drop_template = self.env.get_template('drop.sql')
+        
+        self.rendered_insert = {
+            table: self.env.get_template('insert/insert.sql').render(table=table, columns=info["columns"])
+            for table, info in schema.items() if info.get("type") == "regular"
+        }
 
-def generate_rendered_insert_queries() -> dict:
-    with open(schema_file_path, 'r') as f:
-        schema = json.load(f)
+    def get_rendered_insert(self, table: str):
+        return self.rendered_insert.get(table)
 
-    insert_queries = {}
-    insert_queries = {
-        table: query_template_env.get_template('insert/insert.sql').render(table=table, columns=info["columns"])
-        for table, info in schema.items() if info.get("type") == "regular"
-    }
+    def get_drop_template(self):
+        return self.drop_template
+    
+    def render_drop_template(self, table: str):
+        return self.drop_template.render(table=table)
+    
+    def get_template(self, path: str):
+        return self.env.get_template(path)
 
-    return insert_queries
-
-def generate_drop_template():
-    drop_template = query_template_env.get_template('drop.sql')
-    return drop_template
+    def render_query(self, path: str):
+        return self.get_template(path).render()
+    

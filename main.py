@@ -6,8 +6,8 @@ from config.db_config import get_connection, end_connection
 from scripts.data_profiling import generate_profile_report, generate_report_if_not_exists
 from scripts.data_cleaning import drop_duplicates, drop_columns, fill_missing_values, remove_null_terminating_char, convert_to_int
 from scripts.data_processing import process_actor_data
-import scripts.sql_query 
-
+from scripts.sql_query import SQLQuery
+from queries.query_templates import QueryTemplates
 
 def main():
     # Connect to DB
@@ -67,33 +67,34 @@ def main():
 
     # Work with DB
     template_dir = 'queries'
-    query_template_env = Environment(loader=FileSystemLoader(template_dir))
-
+    schema_file_path = 'schema.json'
+    query_templates = QueryTemplates(template_dir, schema_file_path)
+    
     # Instantiate SQLQuery class
-    sql_query = scripts.sql_query.SQLQuery(connection)
+    sql_query = SQLQuery(connection, query_templates)
 
     sql_query.execute_drop("directors")
-    sql_query.execute(query_template_env.get_template('create/director.sql').render())
+    sql_query.execute(query_templates.render_query('create/director.sql'))
     sql_query.execute_insert("directors", directors_df)
 
     sql_query.execute_drop("actors")
-    sql_query.execute(query_template_env.get_template('create/actors.sql').render())
+    sql_query.execute(query_templates.render_query('create/actors.sql'))
     sql_query.execute_insert("actors", actors_df)
 
     sql_query.execute_drop("movies")
-    sql_query.execute(query_template_env.get_template('create/movies.sql').render())
+    sql_query.execute(query_templates.render_query('create/movies.sql'))
     sql_query.execute_insert("movies", movie_df)
     
     sql_query.execute_drop("genres_tmp")
-    sql_query.execute(query_template_env.get_template('create/genres_tmp.sql').render())
-    insert_genres_tmp_template = query_template_env.get_template('insert/genres_tmp.sql')
+    sql_query.execute(query_templates.render_query('create/genres_tmp.sql'))
+    insert_genres_tmp_template = query_templates.env.get_template('insert/genres_tmp.sql')
     sql_query.copy_expert(insert_genres_tmp_template.render(), genres_df)
     
     sql_query.execute_drop("movie_genres")
-    sql_query.execute(query_template_env.get_template('create/movie_genres.sql').render())
+    sql_query.execute(query_templates.render_query('create/movie_genres.sql'))
     sql_query.execute_drop("genres_tmp")
 
-    template = query_template_env.get_template('select_limit.sql')
+    template = query_templates.get_template('select_limit.sql')
     query = template.render(table="movie_genres", limit=10)
 
     sql_query.execute(query)
