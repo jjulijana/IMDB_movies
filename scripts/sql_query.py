@@ -49,6 +49,15 @@ class SQLQuery:
         
         total_time = end_time - start_time
         return total_time
+    
+    def execute_create(self, table_name: str) -> None:
+        create_query = self.query_templates.render_query(f'create/{table_name}.sql')
+        self.execute_drop(table_name)
+        self.execute(create_query)
+    
+    def execute_create_insert(self, table_name: str, df: pd.DataFrame) -> float:
+        self.execute_create(table_name)
+        self.execute_insert(table_name, df)
 
     def copy_expert(self, query: str, df: pd.DataFrame) -> float:
         start_time = time.time()

@@ -68,30 +68,22 @@ def main():
     # Work with DB
     template_dir = 'queries'
     schema_file_path = 'schema.json'
-    query_templates = QueryTemplates(template_dir, schema_file_path)
     
-    # Instantiate SQLQuery class
+    # Instantiate QueryTemplates singleton and SQLQuery class
+    query_templates = QueryTemplates(template_dir, schema_file_path)
     sql_query = SQLQuery(connection, query_templates)
 
-    sql_query.execute_drop("directors")
-    sql_query.execute(query_templates.render_query('create/director.sql'))
-    sql_query.execute_insert("directors", directors_df)
+    sql_query.execute_create_insert("directors", directors_df)
 
-    sql_query.execute_drop("actors")
-    sql_query.execute(query_templates.render_query('create/actors.sql'))
-    sql_query.execute_insert("actors", actors_df)
+    sql_query.execute_create_insert("actors", actors_df)
 
-    sql_query.execute_drop("movies")
-    sql_query.execute(query_templates.render_query('create/movies.sql'))
-    sql_query.execute_insert("movies", movie_df)
-    
-    sql_query.execute_drop("genres_tmp")
-    sql_query.execute(query_templates.render_query('create/genres_tmp.sql'))
+    sql_query.execute_create_insert("movies", movie_df)
+
+    sql_query.execute_create("genres_tmp")
     insert_genres_tmp_template = query_templates.env.get_template('insert/genres_tmp.sql')
     sql_query.copy_expert(insert_genres_tmp_template.render(), genres_df)
     
-    sql_query.execute_drop("movie_genres")
-    sql_query.execute(query_templates.render_query('create/movie_genres.sql'))
+    sql_query.execute_create("movie_genres")
     sql_query.execute_drop("genres_tmp")
 
     template = query_templates.get_template('select_limit.sql')
