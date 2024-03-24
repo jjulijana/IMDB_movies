@@ -39,13 +39,13 @@ class SQLQuery:
         self.execute(self.query_templates.render_drop_template(table_name))
         
     def execute_insert(self, table_name: str, df: pd.DataFrame) -> float:
-        insert = self.query_templates.get_rendered_insert(table_name)
-        if insert is None:
-            raise ValueError("Insert query for table " + table_name + " is not set in schema.")
+        insert_query = self.query_templates.get_rendered_insert(table_name)
+        if insert_query is None:
+            raise ValueError(f"Insert info for table '{table_name}' is not set in schema.")
         
         start_time = time.time()
         self.cursor.executemany(
-            insert, 
+            insert_query, 
             df.to_dict(orient="records")
         )
         self.connection.commit()
@@ -61,17 +61,21 @@ class SQLQuery:
     
     def execute_create_insert(self, table_name: str, df: pd.DataFrame) -> float:
         self.execute_create(table_name)
-        self.execute_insert(table_name, df)
+        return self.execute_insert(table_name, df)
 
     def copy_expert_insert(self, table_name: str, df: pd.DataFrame) -> float:
+        insert_query = self.query_templates.get_rendered_insert(table_name)
+        if insert_query is None:
+            raise ValueError(f"Insert info for table '{table_name}' is not set in schema.")
+        
         start_time = time.time()
         sio = StringIO()
-        df.to_csv(sio, index=None, header= None)
+        df.to_csv(sio, index=None, header=None)
         sio.seek(0)
-        query = self.query_templates.render_query(f'insert/{table_name}.sql')
-        self.cursor.copy_expert(sql=query, file=sio)
+        self.cursor.copy_expert(sql=insert_query, file=sio)
         self.connection.commit()
         end_time = time.time()
+
         total_time = end_time - start_time
         return total_time
 
@@ -80,4 +84,3 @@ class SQLQuery:
 
     def close(self) -> None:
         self.cursor.close()
-        
