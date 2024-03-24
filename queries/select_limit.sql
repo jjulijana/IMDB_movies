@@ -1,5 +1,5 @@
 SELECT *
-FROM movie_genres
+FROM {{table}}
 {%- if limit %}
 LIMIT {{limit}}
 {%- endif %}
