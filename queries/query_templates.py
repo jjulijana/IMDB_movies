@@ -17,3 +17,7 @@ def generate_rendered_insert_queries() -> dict:
     }
 
     return insert_queries
+
+def generate_drop_template():
+    drop_template = query_template_env.get_template('drop.sql')
+    return drop_template
