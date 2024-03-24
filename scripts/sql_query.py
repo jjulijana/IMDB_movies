@@ -14,6 +14,10 @@ class SQLQuery:
     def execute(self, query: str) -> None:
         self.cursor.execute(query)
         self.connection.commit()
+
+    def execute_path(self, path: str, render_items: dict) -> None:
+        query = self.query_templates.render_query(path, **render_items)
+        self.execute(query)
         
     def execute_values_wrapper(self, query: str, argslist: list, template: str = None) -> float:
         start_time = time.time()
@@ -37,7 +41,7 @@ class SQLQuery:
     def execute_insert(self, table_name: str, df: pd.DataFrame) -> float:
         insert = self.query_templates.get_rendered_insert(table_name)
         if insert is None:
-            raise ValueError("Insert query for table " + table_name + " is not set.")
+            raise ValueError("Insert query for table " + table_name + " is not set in schema.")
         
         start_time = time.time()
         self.cursor.executemany(
@@ -59,11 +63,12 @@ class SQLQuery:
         self.execute_create(table_name)
         self.execute_insert(table_name, df)
 
-    def copy_expert(self, query: str, df: pd.DataFrame) -> float:
+    def copy_expert_insert(self, table_name: str, df: pd.DataFrame) -> float:
         start_time = time.time()
         sio = StringIO()
         df.to_csv(sio, index=None, header= None)
         sio.seek(0)
+        query = self.query_templates.render_query(f'insert/{table_name}.sql')
         self.cursor.copy_expert(sql=query, file=sio)
         self.connection.commit()
         end_time = time.time()

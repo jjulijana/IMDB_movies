@@ -25,18 +25,22 @@ class QueryTemplates:
             for table, info in schema.items() if info.get("type") == "regular"
         }
 
-    def get_rendered_insert(self, table: str):
+    def get_rendered_insert(self, table: str) -> str:
         return self.rendered_insert.get(table)
 
-    def get_drop_template(self):
+    def get_drop_template(self) -> str:
         return self.drop_template
     
-    def render_drop_template(self, table: str):
+    def render_drop_template(self, table: str) -> str:
         return self.drop_template.render(table=table)
     
-    def get_template(self, path: str):
+    def get_template(self, path: str) -> str:
         return self.env.get_template(path)
 
-    def render_query(self, path: str):
+    def render_query(self, path: str) -> str:
         return self.get_template(path).render()
+    
+    def render_query(self, path: str, **render_items: str) -> str:
+        template = self.env.get_template(path)
+        return template.render(render_items)
     

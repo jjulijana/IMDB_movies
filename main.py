@@ -79,17 +79,15 @@ def main():
 
     sql_query.execute_create_insert("movies", movie_df)
 
+    # Demonstrating another way for insertion
     sql_query.execute_create("genres_tmp")
-    insert_genres_tmp_template = query_templates.env.get_template('insert/genres_tmp.sql')
-    sql_query.copy_expert(insert_genres_tmp_template.render(), genres_df)
-    
+    sql_query.copy_expert_insert("genres_tmp", genres_df)
     sql_query.execute_create("movie_genres")
+    
+    # Clearing temporary tables
     sql_query.execute_drop("genres_tmp")
 
-    template = query_templates.get_template('select_limit.sql')
-    query = template.render(table="movie_genres", limit=10)
-
-    sql_query.execute(query)
+    sql_query.execute_path('select_limit.sql', {"table": "movie_genres", "limit": 10})
     rows = sql_query.fetchall()
     for row in rows:
         print(row)
