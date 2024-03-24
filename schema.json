@@ -1,0 +1,46 @@
+{
+    "directors" : {
+        "columns" : [
+            "director_name", 
+            "movie_count"
+        ],
+        "type": "regular"
+    },
+
+    "actors" : {
+        "columns" : [
+            "actor_name",
+            "actor_facebook_likes", 
+            "movie_count"
+        ],
+        "type": "regular"
+    },
+
+    "movies" : {
+        "columns" : [
+            "movie_title", "color", "director_name", 
+            "duration", "gross",  "movie_imdb_link", 
+            "language", "country", "content_rating", 
+            "aspect_ratio", "imdb_score", "movie_facebook_likes"
+        ],
+        "type": "regular"
+    },
+    
+    "genres_tmp" : {
+        "columns" : [
+            "movie_title",
+            "genres"
+        ],
+        "type": "with_csv"
+    },
+
+    "movie_genres" : {
+        "columns" : [
+            "id",
+            "movie_id",
+            "title",
+            "genres"
+        ],
+        "type": "regular"
+    }
+}
