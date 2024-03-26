@@ -1,6 +1,7 @@
 import numpy as np
+import pandas as pd
 
-def drop_duplicates(data):
+def drop_duplicates(data: pd.DataFrame) -> pd.DataFrame:
     return data.drop_duplicates(inplace=True)
 
 def drop_columns(data):

@@ -21,7 +21,7 @@ def main():
         print("File does not exist.")
         return
     raw_data = pd.read_csv(file_path)
-    data = raw_data
+    data: pd.DataFrame = raw_data
 
     generate_report_if_not_exists(raw_data, 'reports/raw_data_report.html')
 

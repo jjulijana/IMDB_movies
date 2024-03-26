@@ -1,6 +1,35 @@
 from jinja2 import Environment, FileSystemLoader
 import json
 
+TEMPLATE_DIR='queries'
+SCHEMA_FILE_PATH='schema.json'
+env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+
+def load_table_info(table: str) -> dict:
+    try:
+        with open(self.schema_file_path, 'r') as f:
+            schema = json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError("Schema file not found.")
+    return schema[table]
+
+def load_template(table_name: str, query_type: str) -> str:
+    if query_type == 'drop':
+        return env.get_template('drop.sql').render(table=table_name)
+
+    table_info = load_table_info(table_name)
+    info_type = table_info.get("type")
+    columns = table_info.get("columns")
+
+    if query_type == 'insert':
+        if info_type == 'regular':
+            return env.get_template('insert/insert.sql').render(table=table_name, columns=columns)
+        if info_type == 'with_csv':
+            return env.get_template('insert/copy.sql').render(table=table_name, columns=columns)
+
+    
+        
+
 class QueryTemplates:
     _instance = None
 
@@ -20,7 +49,7 @@ class QueryTemplates:
             cls._instance._load_templates()
         return cls._instance
     
-    def _load_templates(self):
+    def _load_templates(self) -> str:
         try:
             with open(self.schema_file_path, 'r') as f:
                 schema = json.load(f)
@@ -29,6 +58,10 @@ class QueryTemplates:
         
         self._rendered_copy = {}
         self._drop_template = self.env.get_template('drop.sql')
+
+        info_type = info.get("type")
+
+        
 
         self._rendered_insert = {                           # dictionary comprehension
             table: self.env.get_template('insert/insert.sql').render(table=table, columns=info["columns"])
