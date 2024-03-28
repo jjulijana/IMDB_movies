@@ -1,0 +1,44 @@
+version: "3.8"
+
+# Define two services: a PostgreSQL database (`db`) and a PgAdmin web interface (`pgadmin`)
+
+services:
+  db:
+    container_name: postgres_container
+    image: postgres
+    restart: unless-stopped               # `unless-stopped` ensures that the container will always restart unless it is manually stopped by the user.
+    environment:                          # If the variables are not set externally, default values are used
+      POSTGRES_USER: ${POSTGRES_USER}            
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /pgdata/postgres              # data dir
+    volumes:
+      - postgres:/pgdata/postgres
+    networks:
+      - postgres
+    ports:
+      - "5432:5432"
+    extra_hosts:
+      - "db:${DB_HOST}"
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+# Define two volumes: `postgres` for the PostgreSQL data and `pgadmin` for PgAdmin data
+volumes:
+    postgres:
+    pgadmin:
