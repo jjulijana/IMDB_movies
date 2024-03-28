@@ -6,7 +6,6 @@ from scripts.data_profiling import generate_profile_report, generate_report_if_n
 from scripts.data_cleaning import drop_duplicates, drop_columns, fill_missing_values, remove_null_terminating_char, convert_to_int
 from scripts.data_processing import process_actor_data
 from scripts.sql_query import SQLQuery
-from queries.query_templates import QueryTemplates
 
 def main():
     # Connect to DB
@@ -65,12 +64,7 @@ def main():
 
 
     # Work with DB
-    template_dir = 'queries'
-    schema_file_path = 'schema.json'
-    
-    # Instantiate QueryTemplates singleton and SQLQuery class
-    query_templates = QueryTemplates(template_dir, schema_file_path)
-    sql_query = SQLQuery(connection, query_templates)
+    sql_query = SQLQuery(connection)
 
     sql_query.execute_create_insert("directors", directors_df)
 

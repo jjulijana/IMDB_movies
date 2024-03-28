@@ -4,7 +4,7 @@ from io import StringIO
 from functools import wraps
 from psycopg2.extras import execute_values
 
-from queries.query_templates import QueryTemplates
+from queries.query_templates import render_template, render_query
 
 def timeit(func):
     @wraps(func)
@@ -19,10 +19,9 @@ def timeit(func):
     return timeit_wrapper
 
 class SQLQuery:
-    def __init__(self, connection, query_templates):
+    def __init__(self, connection):
         self.connection = connection
         self.cursor = connection.cursor()
-        self.query_templates = query_templates
 
     def execute(self, query: str) -> None:
         self.cursor.execute(query)
@@ -30,7 +29,7 @@ class SQLQuery:
 
     @timeit
     def execute_path(self, path: str, render_items: dict) -> None:
-        query = self.query_templates.render_query(path, **render_items)
+        query = render_query(path, **render_items)
         self.execute(query)
         
     @timeit
@@ -45,13 +44,11 @@ class SQLQuery:
         
     @timeit
     def execute_drop(self, table_name: str) -> None:
-        if self.query_templates.get_drop_template() is None:
-            raise ValueError("Drop template is not set.")
-        self.execute(self.query_templates.render_drop_template(table_name))
+        self.execute(render_template(table_name, 'drop'))
         
     @timeit
     def execute_insert(self, table_name: str, df: pd.DataFrame) -> None:
-        insert_query = self.query_templates.get_rendered_insert(table_name)
+        insert_query = render_template(table_name, 'insert')
         if insert_query is None:
             raise ValueError(f"Insert info for table '{table_name}' is not set in schema.")
         
@@ -63,7 +60,7 @@ class SQLQuery:
 
     @timeit
     def execute_create(self, table_name: str) -> None:
-        create_query = self.query_templates.render_query(f'create/{table_name}.sql')
+        create_query = render_query(f'create/{table_name}.sql')
         self.execute_drop(table_name)
         self.execute(create_query)
     
@@ -73,7 +70,7 @@ class SQLQuery:
 
     @timeit
     def copy_expert_insert(self, table_name: str, df: pd.DataFrame) -> None:
-        insert_query = self.query_templates.get_rendered_insert(table_name)
+        insert_query = render_template(table_name, 'insert')
         if insert_query is None:
             raise ValueError(f"Insert info for table '{table_name}' is not set in schema.")
         
