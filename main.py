@@ -19,8 +19,8 @@ def main():
     if not os.path.exists(file_path):
         print("File does not exist.")
         return
-    raw_data = pd.read_csv(file_path)
-    data = raw_data
+    raw_data: pd.DataFrame = pd.read_csv(file_path)
+    data: pd.DataFrame = raw_data
 
     generate_report_if_not_exists(raw_data, 'reports/raw_data_report.html')
 
@@ -89,6 +89,6 @@ def main():
     
     # End DB connection
     end_connection(connection)
-    
+
 if __name__ == '__main__':
     main()

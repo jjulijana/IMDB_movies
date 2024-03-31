@@ -33,7 +33,7 @@ class SQLQuery:
         self.execute(query)
         
     @timeit
-    def execute_values_wrapper(self, query: str, argslist: list, template: str = None) -> None:
+    def execute_values_wrapper(self, query: str, argslist: list, template: str = "") -> None:
         execute_values(
             cur=self.cursor,
             sql=query,
@@ -75,7 +75,7 @@ class SQLQuery:
             raise ValueError(f"Insert info for table '{table_name}' is not set in schema.")
         
         sio = StringIO()
-        df.to_csv(sio, index=None, header=None)
+        df.to_csv(sio, index=False, header=False)
         sio.seek(0)
         self.cursor.copy_expert(sql=insert_query, file=sio)
         self.connection.commit()

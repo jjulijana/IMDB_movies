@@ -1,22 +1,25 @@
 import numpy as np
+import pandas as pd
 
-def drop_duplicates(data):
+def drop_duplicates(data: pd.DataFrame) -> pd.DataFrame:
     return data.drop_duplicates(inplace=True)
 
-def drop_columns(data):
+def drop_columns(data: pd.DataFrame) -> pd.DataFrame:
     columns_to_drop = ['facenumber_in_poster']
     return data.drop(columns=columns_to_drop, inplace=True)
 
-def remove_null_terminating_char(data):
+def remove_null_terminating_char(data: pd.DataFrame) -> pd.DataFrame:
     data['movie_title'] = data['movie_title'].apply(lambda x: x[:-1]).str.rstrip()
+    return data
 
-def convert_to_int(data):
+def convert_to_int(data: pd.DataFrame) -> pd.DataFrame:
     numerical_cols = data.select_dtypes(include=np.number).columns
     for col in numerical_cols:
         if (data[col] % 1 == 0).all():
             data[col] = data[col].astype('int64')
+    return data
     
-def fill_missing_values(data):
+def fill_missing_values(data: pd.DataFrame) -> pd.DataFrame:
     # Fill missing values for specific columns
     name_cols = [col for col in data.columns if col.endswith('name')]
     for col in name_cols:
@@ -37,7 +40,9 @@ def fill_missing_values(data):
     for col in num_cols:
         data[col] = data[col].fillna(data[col].median())
 
-def get_unique_values(data):
+    return data
+
+def get_unique_values(data) -> None:
     for column in data.columns:
         unique_values = data[column].unique()
     

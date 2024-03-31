@@ -27,6 +27,8 @@ __pycache__/
 # Ignore configuration files with sensitive information (modify based on your project's needs)
 config/*.ini
 config/secrets.py
+config/annotation.txt
+config/annotation.dump
 
 # Ignore any other project-specific files or directories
 .env
