@@ -1,17 +1,25 @@
 from jinja2 import Environment, FileSystemLoader
-import json
+import pymongo
+from pymongo import MongoClient
 
 TEMPLATE_DIR='queries'
-SCHEMA_FILE_PATH='schema.json'
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
+CONNECTION_STRING = "mongodb://user123:pass123@localhost:27017/"
+DATABASE = "schema"
+COLLECTION = "schema"
+
 def load_table_info(table: str) -> dict:
-    try:
-        with open(SCHEMA_FILE_PATH, 'r') as f:
-            schema = json.load(f)
-    except FileNotFoundError:
-        raise FileNotFoundError("Schema file not found.")
-    return schema[table]
+    client = pymongo.MongoClient(CONNECTION_STRING)
+    db = client[DATABASE]
+    collection = db[COLLECTION]
+
+    document = collection.find_one({"_id": table})
+    if document is None:
+        raise ValueError(f"No document found for table '{table}'")
+
+    client.close()
+    return document
 
 def render_template(table_name: str, query_type: str) -> str:
 
