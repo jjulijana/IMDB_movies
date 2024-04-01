@@ -21,8 +21,8 @@ db_host = output.split()[0]
 
 # Define the content of the .env file
 env_content = f"""\
-DB_USER=user123
-DB_PASSWORD=pass123
+POSTGRES_USER=user123
+POSTGRES_PASSWORD=pass123
 DB_HOST={db_host}
 DB_PORT=5432
 DB_NAME=user123
