@@ -18,11 +18,33 @@ def timeit(func):
         return result
     return timeit_wrapper
 
+import redis
+import pickle
+
+def redis_cache(func):
+    r = redis.Redis(host='localhost', port=6379, db=0)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        cache_key = f"{func.__name__}:{args}"
+        cached_result = r.get(cache_key)
+        if cached_result:
+            print(f"Cache hit for {func.__name__}({args})")
+            return pickle.loads(cached_result)
+        else:
+            result = func(*args, **kwargs)
+            r.set(cache_key, pickle.dumps(result))
+            return result
+
+    return wrapper
+
+
 class SQLQuery:
     def __init__(self, connection):
         self.connection = connection
         self.cursor = connection.cursor()
 
+    @redis_cache
     def execute(self, query: str) -> None:
         self.cursor.execute(query)
         self.connection.commit()
@@ -32,6 +54,7 @@ class SQLQuery:
         query = render_query(path, **render_items)
         self.execute(query)
         
+    @redis_cache
     @timeit
     def execute_values_wrapper(self, query: str, argslist: list, template: str = "") -> None:
         execute_values(
@@ -46,6 +69,7 @@ class SQLQuery:
     def execute_drop(self, table_name: str) -> None:
         self.execute(render_template(table_name, 'drop'))
         
+    @redis_cache
     @timeit
     def execute_insert(self, table_name: str, df: pd.DataFrame) -> None:
         insert_query = render_template(table_name, 'insert')
@@ -68,6 +92,7 @@ class SQLQuery:
         self.execute_create(table_name)
         self.execute_insert(table_name, df)
 
+    @redis_cache
     @timeit
     def copy_expert_insert(self, table_name: str, df: pd.DataFrame) -> None:
         insert_query = render_template(table_name, 'insert')
